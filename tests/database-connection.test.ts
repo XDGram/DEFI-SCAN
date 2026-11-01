@@ -1,0 +1,37 @@
+import { describe, expect, it } from 'vitest'
+import { loadConfig } from '../server/config.js'
+import { connectionOptions } from '../server/db/db.js'
+import { testDb } from './helpers.js'
+
+const URL_ = 'postgresql://user:pw@db.invalid:6543/postgres?sslmode=require&pgbouncer=true'
+const CA = '-----BEGIN CERTIFICATE-----\nTEST\n-----END CERTIFICATE-----'
+
+describe('database connection (server-side only)', () => {
+  it('requires a CA certificate and verifies the server certificate', () => {
+    expect(() => connectionOptions({ url: URL_, caCert: null, sslDisabled: false })).toThrow(/DATABASE_CA_CERT/)
+    const o = connectionOptions({ url: URL_, caCert: CA, sslDisabled: false })
+    expect(o.ssl).toEqual({ ca: CA, rejectUnauthorized: true })
+  })
+
+  it('strips sslmode from the URL so it cannot weaken TLS settings', () => {
+    const o = connectionOptions({ url: URL_, caCert: CA, sslDisabled: false })
+    expect(o.connectionString).not.toContain('sslmode')
+    expect(o.connectionString).toContain('pgbouncer=true')
+  })
+
+  it('reads DATABASE_* from env and accepts a CA with escaped newlines', () => {
+    const c = loadConfig({ DATABASE_URL: URL_, DATABASE_CA_CERT: CA.replace(/\n/g, '\\n') })
+    expect(c.database?.caCert).toBe(CA)
+    expect(c.database?.sslDisabled).toBe(false)
+    expect(loadConfig({}).database).toBeNull()
+  })
+
+  it('enables row level security on every table (blocks Supabase Data API roles)', async () => {
+    const db = await testDb()
+    const r = await db.query<{ relname: string; relrowsecurity: boolean }>(
+      `SELECT relname, relrowsecurity FROM pg_class WHERE relkind = 'r' AND relnamespace = 'public'::regnamespace ORDER BY relname`,
+    )
+    expect(r.rows.map((x) => x.relname)).toEqual(['payment_events', 'research_requests', 'research_results', 'spend_reservations', 'system_flags', 'telegraph_payments'])
+    expect(r.rows.every((x) => x.relrowsecurity)).toBe(true)
+  })
+})

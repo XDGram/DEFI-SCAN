@@ -24,7 +24,7 @@ export async function withUser(req: IncomingMessage, fn: (ctx: { userId: string;
 }
 
 export async function deps(cfg: ReturnType<typeof loadConfig>) {
-  return { db: await getDb(cfg.databaseUrl), allowlist: loadAllowlist() }
+  return { db: await getDb(cfg.database), allowlist: loadAllowlist() }
 }
 
 export async function jsonBody(req: IncomingMessage): Promise<{ ok: true; value: unknown } | { ok: false; result: ApiResult }> {

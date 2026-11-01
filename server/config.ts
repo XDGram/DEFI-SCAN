@@ -9,7 +9,7 @@ export interface ServerConfig {
   paymentsEnabled: boolean
   caps: SpendCaps
   sessionSecret: string | null
-  databaseUrl: string | null
+  database: { url: string; caCert: string | null; sslDisabled: boolean } | null
   defillama: { yieldsBase: string; usesKey: boolean }
 }
 
@@ -42,7 +42,14 @@ export function loadConfig(env: Env = process.env): ServerConfig {
       globalTotalUusdc: uusdc(env, 'CAP_GLOBAL_TOTAL_UUSDC'),
     },
     sessionSecret: env.SESSION_SECRET && env.SESSION_SECRET.length >= 32 ? env.SESSION_SECRET : null,
-    databaseUrl: env.DATABASE_URL || null,
+    database: env.DATABASE_URL
+      ? {
+          url: env.DATABASE_URL,
+          caCert: env.DATABASE_CA_CERT ? env.DATABASE_CA_CERT.replace(/\\n/g, '\n') : null,
+          // Only for a local database without TLS. Never set this in Vercel.
+          sslDisabled: env.DATABASE_SSL === 'disable',
+        }
+      : null,
     defillama: { yieldsBase, usesKey: Boolean(key && template) },
   }
 }

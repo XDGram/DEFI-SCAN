@@ -86,3 +86,25 @@ CREATE TABLE IF NOT EXISTS system_flags (
 );
 
 INSERT INTO system_flags (name, value) VALUES ('payments_kill_switch', true) ON CONFLICT (name) DO NOTHING;
+
+-- Supabase exposes the public schema through its Data API (PostgREST/GraphQL) to the anon and
+-- authenticated roles. These tables are only for the server's direct Postgres connection, so:
+-- 1) enable row level security with no policies (denies those roles), and
+-- 2) revoke their table privileges. The owning role used by the server is unaffected.
+ALTER TABLE research_requests  ENABLE ROW LEVEL SECURITY;
+ALTER TABLE telegraph_payments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE research_results   ENABLE ROW LEVEL SECURITY;
+ALTER TABLE payment_events     ENABLE ROW LEVEL SECURITY;
+ALTER TABLE spend_reservations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE system_flags       ENABLE ROW LEVEL SECURITY;
+
+DO $$
+DECLARE r TEXT;
+BEGIN
+  FOREACH r IN ARRAY ARRAY['anon', 'authenticated'] LOOP
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = r) THEN
+      EXECUTE format('REVOKE ALL ON research_requests, telegraph_payments, research_results, payment_events, spend_reservations, system_flags FROM %I', r);
+      EXECUTE format('REVOKE ALL ON SEQUENCE payment_events_id_seq FROM %I', r);
+    END IF;
+  END LOOP;
+END $$;
