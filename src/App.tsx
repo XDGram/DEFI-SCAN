@@ -60,7 +60,7 @@ function Navbar() {
         </a>
         <div className="nav__links">
           <a href="#how-it-works">How It Works</a>
-          <a href="#opportunities">Explore</a>
+          <a href="/app/discover">Explore</a>
         </div>
         <button
           className="nav__cta"
@@ -140,7 +140,7 @@ function Hero() {
         investigate details beyond APY.
       </p>
       <div className="hero__actions hero__fade" style={{ '--d': '2.2s' } as CSSProperties}>
-        <PillButton href="#opportunities" accent>
+        <PillButton href="/app/discover" accent>
           Explore Opportunities
         </PillButton>
         <PillButton href="#how-it-works" variant="light">
@@ -232,7 +232,7 @@ function OpportunityPreview() {
           is not a measure of safety or suitability. &ldquo;Fetched&rdquo; is when this page loaded
           the data from DefiLlama, not when DefiLlama last updated it.
         </p>
-        <PillButton href="#opportunities" variant="light">
+        <PillButton href="/app/discover" variant="light">
           Explore All Opportunities
         </PillButton>
       </div>
