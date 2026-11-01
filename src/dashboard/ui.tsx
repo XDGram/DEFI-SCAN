@@ -339,3 +339,47 @@ export function Select({
     </div>
   )
 }
+
+export function ConfirmDialog({
+  open,
+  title,
+  children,
+  confirmLabel,
+  onConfirm,
+  onCancel,
+}: {
+  open: boolean
+  title: string
+  children: ReactNode
+  confirmLabel: string
+  onConfirm: () => void
+  onCancel: () => void
+}) {
+  const cancelRef = useRef<HTMLButtonElement>(null)
+  const cancel = useRef(onCancel)
+  cancel.current = onCancel
+  useEffect(() => {
+    if (!open) return
+    cancelRef.current?.focus()
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && cancel.current()
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [open])
+  if (!open) return null
+  return (
+    <div className="modal" role="presentation" onPointerDown={(e) => e.target === e.currentTarget && onCancel()}>
+      <div className="modal__box" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title">
+        <h2 id="confirm-title">{title}</h2>
+        <div className="modal__body">{children}</div>
+        <div className="modal__actions">
+          <button ref={cancelRef} className="btn btn--light" type="button" onClick={onCancel}>
+            Cancel
+          </button>
+          <button className="btn btn--danger" type="button" onClick={onConfirm}>
+            {confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}

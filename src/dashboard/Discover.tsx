@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fmtPct, fmtUsd, loadPools, prettyProject, SOURCE, timeAgo, useNow, usePoolsData } from './data'
-import { usePrefs, useStored } from './store'
+import { hasResearchPrefs, matchesResearchPrefs, passesOpportunityPrefs, usePrefs, useStored } from './store'
 import { Badge, ChainLogo, DotLoader, Empty, ErrorBox, Missing, PageHeader, ProtocolLogo, Select, Switch } from './ui'
 import { CompareToggle, WatchButton } from './actions'
 
@@ -69,7 +69,7 @@ export default function Discover() {
     const proto = f.protocol.trim().toLowerCase()
     const asset = f.asset.trim().toLowerCase()
     const [aMin, aMax, tMin, tMax] = [num(f.apyMin), num(f.apyMax), num(f.tvlMin), num(f.tvlMax)]
-    const mine = new Set(prefs.networks)
+    const usePrefRank = f.preferMine && hasResearchPrefs(prefs)
     const list = data.pools.filter((p) => {
       if (proto && !p.project.toLowerCase().includes(proto) && !prettyProject(p.project).toLowerCase().includes(proto)) return false
       if (asset && !p.symbol.toLowerCase().includes(asset)) return false
@@ -80,18 +80,28 @@ export default function Discover() {
       if (tMax != null && p.tvlUsd > tMax) return false
       if (f.stableOnly && !p.stablecoin) return false
       if (f.noIl && p.ilRisk !== 'no') return false
+      if (!passesOpportunityPrefs(p, prefs)) return false
+      if (prefs.hideNonMatching && !matchesResearchPrefs(p, prefs)) return false
       return true
     })
     const key = f.sort === 'apy' ? (p: (typeof list)[0]) => p.apy ?? -Infinity : (p: (typeof list)[0]) => p.tvlUsd
     list.sort((a, b) => {
-      if (f.preferMine && mine.size) {
-        const d = Number(mine.has(b.chain)) - Number(mine.has(a.chain))
+      if (usePrefRank) {
+        const d = Number(matchesResearchPrefs(b, prefs)) - Number(matchesResearchPrefs(a, prefs))
         if (d) return d
       }
       return key(b) - key(a)
     })
     return list
-  }, [data, f, prefs.networks])
+  }, [data, f, prefs])
+
+  const prefsSet = hasResearchPrefs(prefs)
+  const applied = [
+    prefs.minApy != null && `Min APY ${prefs.minApy}%`,
+    prefs.minTvl != null && `Min TVL ${fmtUsd(prefs.minTvl)}`,
+    prefs.stableOnly && 'Stablecoins only',
+    prefs.hideNonMatching && prefsSet && 'Hiding opportunities outside your networks and assets',
+  ].filter(Boolean) as string[]
 
   const activeCount =
     [f.protocol, f.asset, f.network, f.apyMin, f.apyMax, f.tvlMax].filter(Boolean).length +
@@ -202,11 +212,11 @@ export default function Discover() {
             label="No impermanent-loss exposure (per DefiLlama)"
           />
           <Switch
-            checked={f.preferMine && prefs.networks.length > 0}
-            disabled={!prefs.networks.length}
-            hint={prefs.networks.length ? undefined : 'Set preferred networks in Settings'}
+            checked={f.preferMine && prefsSet}
+            disabled={!prefsSet || prefs.hideNonMatching}
+            hint={prefsSet ? undefined : 'Set preferred networks or assets in Settings'}
             onChange={(v) => upd({ preferMine: v })}
-            label={prefs.networks.length ? 'Show my preferred networks first' : 'Preferred networks first (set in Settings)'}
+            label={prefsSet ? 'Show matches for my preferences first' : 'Preference matches first (set in Settings)'}
           />
           {activeCount > 0 && (
             <button className="link-btn" type="button" onClick={() => upd(DEFAULT_FILTERS)}>
@@ -215,6 +225,17 @@ export default function Discover() {
           )}
         </div>
         <p className="filters__hint">These filters describe pool attributes. They do not make an opportunity safe.</p>
+        {applied.length > 0 && (
+          <p className="filters__applied">
+            <span>From your Settings:</span>
+            {applied.map((a) => (
+              <span key={a} className="badge badge--dark">
+                {a}
+              </span>
+            ))}
+            <Link to="/app/settings">Edit</Link>
+          </p>
+        )}
       </section>
 
       {(data.status === 'loading' || data.status === 'idle') && <DotLoader label="Loading live opportunities from DefiLlama…" />}
@@ -247,6 +268,7 @@ export default function Discover() {
                         {p.poolMeta && <span className="muted"> · {p.poolMeta}</span>}
                       </p>
                     </div>
+                    {prefsSet && matchesResearchPrefs(p, prefs) && <Badge tone="live">Matches preferences</Badge>}
                     <Badge>
                       <ChainLogo chain={p.chain} size={14} />
                       {p.chain}

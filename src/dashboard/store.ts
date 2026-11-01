@@ -1,4 +1,4 @@
-import { useCallback, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import type { LlamaPool } from './data'
 
 const PREFIX = 'dos:'
@@ -82,9 +82,49 @@ export interface Preferences {
   budgetMin: number | null
   budgetMax: number | null
   networks: string[]
+  assets: string[]
+  minApy: number | null
+  minTvl: number | null
+  stableOnly: boolean
+  hideNonMatching: boolean
 }
 
-export const DEFAULT_PREFS: Preferences = { risk: null, budgetMin: null, budgetMax: null, networks: [] }
+export const DEFAULT_PREFS: Preferences = {
+  risk: null,
+  budgetMin: null,
+  budgetMax: null,
+  networks: [],
+  assets: [],
+  minApy: null,
+  minTvl: null,
+  stableOnly: false,
+  hideNonMatching: false,
+}
+
+function assetMatches(symbol: string, asset: string) {
+  const a = asset.toUpperCase()
+  return symbol
+    .toUpperCase()
+    .split(/[-/ ]+/)
+    .some((t) => t === a || (a.length >= 3 && t.endsWith(a)))
+}
+
+export function hasResearchPrefs(p: Preferences) {
+  return p.networks.length > 0 || p.assets.length > 0
+}
+
+export function matchesResearchPrefs(pool: { chain: string; symbol: string }, p: Preferences) {
+  if (p.networks.length && !p.networks.includes(pool.chain)) return false
+  if (p.assets.length && !p.assets.some((a) => assetMatches(pool.symbol, a))) return false
+  return true
+}
+
+export function passesOpportunityPrefs(pool: { apy: number | null; tvlUsd: number; stablecoin: boolean }, p: Preferences) {
+  if (p.minApy != null && (pool.apy == null || pool.apy < p.minApy)) return false
+  if (p.minTvl != null && pool.tvlUsd < p.minTvl) return false
+  if (p.stableOnly && !pool.stablecoin) return false
+  return true
+}
 
 export const RISK_LABEL: Record<RiskPref, string> = {
   lower: 'Lower Risk',
@@ -150,8 +190,29 @@ export function useCompare() {
   return useStored<string[]>('compare', [])
 }
 
-export function usePrefs() {
-  return useStored<Preferences>('prefs', DEFAULT_PREFS)
+export function usePrefs(): [Preferences, (v: Preferences) => void] {
+  const [raw, set] = useStored<Partial<Preferences>>('prefs', DEFAULT_PREFS)
+  const prefs = useMemo(() => ({ ...DEFAULT_PREFS, ...raw }), [raw])
+  return [prefs, set as (v: Preferences) => void]
+}
+
+export type ThemePref = 'system' | 'light' | 'dark'
+
+export function useThemePref() {
+  return useStored<ThemePref>('theme', 'system')
+}
+
+export function useResolvedTheme(): 'light' | 'dark' {
+  const [pref] = useThemePref()
+  const query = '(prefers-color-scheme: dark)'
+  const [systemDark, setSystemDark] = useState(() => window.matchMedia(query).matches)
+  useEffect(() => {
+    const mq = window.matchMedia(query)
+    const on = (e: MediaQueryListEvent) => setSystemDark(e.matches)
+    mq.addEventListener('change', on)
+    return () => mq.removeEventListener('change', on)
+  }, [])
+  return pref === 'system' ? (systemDark ? 'dark' : 'light') : pref
 }
 
 export function useReports() {
