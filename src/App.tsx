@@ -1,4 +1,4 @@
-import { CSSProperties, useState } from 'react'
+import { CSSProperties, useEffect, useState } from 'react'
 import { formatUsd, usePools } from './usePools'
 import { Letters, Words, useCinematic } from './cinematic'
 
@@ -66,7 +66,7 @@ function Navbar() {
           className="nav__cta"
           type="button"
           onClick={() => setWalletNote(true)}
-          title="Wallet connection is not available yet"
+          title="Wallet connection will be available in the dashboard"
         >
           {walletNote ? 'Coming soon' : 'Connect Wallet'}
         </button>
@@ -151,12 +151,25 @@ function Hero() {
   )
 }
 
+function timeAgo(ms: number): string {
+  const min = Math.floor(ms / 60000)
+  if (min < 1) return 'just now'
+  if (min < 60) return `${min} min ago`
+  return `${Math.floor(min / 60)} h ago`
+}
+
 function OpportunityPreview() {
   const state = usePools(3)
-  const timeLabel =
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 15000)
+    return () => clearInterval(id)
+  }, [])
+  const fetchedAgo = state.status === 'ready' ? timeAgo(now - state.fetchedAt.getTime()) : null
+  const fetchedExact =
     state.status === 'ready'
-      ? state.fetchedAt.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
-      : null
+      ? `Loaded from DefiLlama by this page at ${state.fetchedAt.toLocaleString()}. This is not DefiLlama's last update time.`
+      : undefined
 
   return (
     <section className="panel" data-reveal id="opportunities" aria-labelledby="opps-heading">
@@ -206,7 +219,7 @@ function OpportunityPreview() {
                 </div>
                 <div>
                   <dt>Fetched</dt>
-                  <dd>{timeLabel}</dd>
+                  <dd title={fetchedExact}>{fetchedAgo}</dd>
                 </div>
               </dl>
             </div>
@@ -216,7 +229,8 @@ function OpportunityPreview() {
       <div className="panel__col panel__cta" style={{ '--i': 3 } as CSSProperties}>
         <p>
           A preview of the largest pools by TVL. APY is variable and can change at any time — it
-          is not a measure of safety or suitability.
+          is not a measure of safety or suitability. &ldquo;Fetched&rdquo; is when this page loaded
+          the data from DefiLlama, not when DefiLlama last updated it.
         </p>
         <PillButton href="#opportunities" variant="light">
           Explore All Opportunities
@@ -299,11 +313,11 @@ const reasons = [
     text: 'Weigh liquidity, fees, withdrawal conditions and protocol risk alongside headline yield.',
   },
   {
-    title: 'Investigate with additional intelligence.',
+    title: 'Investigate opportunities using additional intelligence.',
     text: 'Request deeper intelligence through Telegraph when the public data isn’t enough.',
   },
   {
-    title: 'Review evidence and information gaps.',
+    title: 'See supporting evidence and information gaps.',
     text: 'See where each finding comes from, how fresh it is, and what is still unknown.',
   },
 ]
