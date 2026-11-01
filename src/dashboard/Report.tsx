@@ -2,7 +2,7 @@ import { Link, useParams } from 'react-router-dom'
 import { fmtPct, fmtUsd, prettyProject, SOURCE } from './data'
 import { ALIGNMENT_LABEL, RISK_LABEL, STATUS_LABEL, useReports } from './store'
 import { RESEARCH_TOPICS } from './report'
-import { Badge, Empty, Missing, ProtocolLogo } from './ui'
+import { Badge, Chain, Empty, Missing, ProtocolLogo } from './ui'
 
 const fmtDate = (ts: number) => new Date(ts).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
 
@@ -69,7 +69,7 @@ export default function Report() {
           <h2>A. Opportunity overview</h2>
           <dl className="kv kv--wide">
             <div><dt>Protocol</dt><dd>{r.protocol.name ?? prettyProject(o.project)}{r.protocol.category && ` · ${r.protocol.category}`}</dd></div>
-            <div><dt>Network</dt><dd>{o.chain}</dd></div>
+            <div><dt>Network</dt><dd><Chain chain={o.chain} /></dd></div>
             <div><dt>Assets</dt><dd>{o.symbol}{o.poolMeta && ` · ${o.poolMeta}`}</dd></div>
             <div><dt>APY</dt><dd>{fmtPct(o.apy)}</dd></div>
             <div><dt>TVL</dt><dd>{fmtUsd(o.tvlUsd)}</dd></div>

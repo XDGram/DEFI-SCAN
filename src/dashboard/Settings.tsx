@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { usePoolsData } from './data'
 import { DEFAULT_PREFS, RiskPref, RISK_LABEL, usePrefs } from './store'
 import { chainName, connectWallet, disconnectWallet, useWallet } from './wallet'
-import { Badge, Check, PageHeader, Segmented } from './ui'
+import { Badge, Chain, Check, PageHeader, Segmented } from './ui'
 
 const FALLBACK_NETWORKS = ['Ethereum', 'Arbitrum', 'Base', 'Optimism', 'Polygon', 'BSC', 'Avalanche', 'Solana']
 
@@ -85,7 +85,7 @@ export default function Settings() {
                   setPrefs({ ...prefs, networks: on ? [...prefs.networks, n] : prefs.networks.filter((x) => x !== n) })
                 }
               >
-                {n}
+                <Chain chain={n} size={18} />
               </Check>
             ))}
           </div>

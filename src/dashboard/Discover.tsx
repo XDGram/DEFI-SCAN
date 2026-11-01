@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fmtPct, fmtUsd, loadPools, prettyProject, SOURCE, timeAgo, useNow, usePoolsData } from './data'
 import { usePrefs, useStored } from './store'
-import { Badge, DotLoader, Empty, ErrorBox, Missing, PageHeader, ProtocolLogo, Switch } from './ui'
+import { Badge, ChainLogo, DotLoader, Empty, ErrorBox, Missing, PageHeader, ProtocolLogo, Select, Switch } from './ui'
 import { CompareToggle, WatchButton } from './actions'
 
 interface Filters {
@@ -131,15 +131,19 @@ export default function Discover() {
             <span>Asset</span>
             <input type="search" placeholder="e.g. USDC" value={f.asset} onChange={(e) => upd({ asset: e.target.value })} />
           </label>
-          <label className="field">
+          <div className="field">
             <span>Network</span>
-            <select value={f.network} onChange={(e) => upd({ network: e.target.value })}>
-              <option value="">All networks</option>
-              {networks.map((n) => (
-                <option key={n}>{n}</option>
-              ))}
-            </select>
-          </label>
+            <Select
+              label="Network"
+              value={f.network}
+              searchable
+              onChange={(network) => upd({ network })}
+              options={[
+                { value: '', label: 'All networks', icon: <span className="clogo clogo--all" aria-hidden="true" /> },
+                ...networks.map((n) => ({ value: n, label: n, icon: <ChainLogo chain={n} size={18} /> })),
+              ]}
+            />
+          </div>
           <div className="field field--pair">
             <span>APY %</span>
             <div>
@@ -150,37 +154,44 @@ export default function Discover() {
           <div className="field field--pair">
             <span>TVL</span>
             <div>
-              <select aria-label="Minimum TVL" value={f.tvlMin} onChange={(e) => upd({ tvlMin: e.target.value })}>
-                {TVL_OPTIONS.map((o) => (
-                  <option key={o.v} value={o.v}>
-                    {o.v ? `≥ ${o.l}` : 'Min: any'}
-                  </option>
-                ))}
-              </select>
-              <select aria-label="Maximum TVL" value={f.tvlMax} onChange={(e) => upd({ tvlMax: e.target.value })}>
-                {TVL_OPTIONS.map((o) => (
-                  <option key={o.v} value={o.v}>
-                    {o.v ? `≤ ${o.l}` : 'Max: any'}
-                  </option>
-                ))}
-              </select>
+              <Select
+                label="Minimum TVL"
+                value={f.tvlMin}
+                onChange={(tvlMin) => upd({ tvlMin })}
+                options={TVL_OPTIONS.map((o) => ({ value: o.v, label: o.v ? `≥ ${o.l}` : 'Min: any' }))}
+              />
+              <Select
+                label="Maximum TVL"
+                value={f.tvlMax}
+                onChange={(tvlMax) => upd({ tvlMax })}
+                options={TVL_OPTIONS.map((o) => ({ value: o.v, label: o.v ? `≤ ${o.l}` : 'Max: any' }))}
+              />
             </div>
           </div>
-          <label className="field">
+          <div className="field">
             <span>Withdrawal conditions</span>
-            <select disabled title="Withdrawal conditions are not provided by current data sources">
-              <option>Not available from current sources</option>
-            </select>
-          </label>
-          <label className="field">
+            <Select
+              label="Withdrawal conditions"
+              value=""
+              disabled
+              onChange={() => {}}
+              options={[{ value: '', label: 'Not available from current sources' }]}
+            />
+          </div>
+          <div className="field">
             <span>Sort by</span>
-            <select value={f.sort} onChange={(e) => upd({ sort: e.target.value as Filters['sort'] })}>
-              <option value="apy">Highest APY</option>
-              <option value="tvl">Highest TVL</option>
-              <option disabled>Lowest fees — not available from current sources</option>
-              <option disabled>Recently updated — no per-pool update time available</option>
-            </select>
-          </label>
+            <Select
+              label="Sort by"
+              value={f.sort}
+              onChange={(v) => upd({ sort: v as Filters['sort'] })}
+              options={[
+                { value: 'apy', label: 'Highest APY' },
+                { value: 'tvl', label: 'Highest TVL' },
+                { value: 'fees', label: 'Lowest fees', disabled: true, hint: 'Not available from current sources' },
+                { value: 'recent', label: 'Recently updated', disabled: true, hint: 'No per-pool update time available' },
+              ]}
+            />
+          </div>
         </div>
         <div className="filters__risk">
           <span className="filters__label">Risk preference filters</span>
@@ -236,7 +247,10 @@ export default function Discover() {
                         {p.poolMeta && <span className="muted"> · {p.poolMeta}</span>}
                       </p>
                     </div>
-                    <Badge>{p.chain}</Badge>
+                    <Badge>
+                      <ChainLogo chain={p.chain} size={14} />
+                      {p.chain}
+                    </Badge>
                   </div>
                   <div className="opp-card__nums">
                     <div>

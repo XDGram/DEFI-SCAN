@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { fmtPct, fmtUsd, prettyProject, timeAgo, useNow, usePoolsData } from './data'
 import { STATUS_LABEL, useReports, useWatchlist } from './store'
-import { Badge, Empty, PageHeader, ProtocolLogo } from './ui'
+import { Badge, Chain, Empty, PageHeader, ProtocolLogo } from './ui'
 
 export default function Watchlist() {
   const [list, setList] = useWatchlist()
@@ -48,7 +48,9 @@ export default function Watchlist() {
                         </div>
                       </div>
                     </td>
-                    <td>{s.chain}</td>
+                    <td>
+                      <Chain chain={s.chain} />
+                    </td>
                     <td className="num">{fmtPct(apy)}</td>
                     <td className="num">{fmtUsd(tvl)}</td>
                     <td>

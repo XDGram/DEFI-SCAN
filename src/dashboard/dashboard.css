@@ -300,3 +300,57 @@ td .badge { margin-left: 6px; }
   .card, .report__verdict { break-inside: avoid; }
 }
 .step-card__body > .btn, .card--dark > .btn { justify-self: start; }
+
+/* Network logos */
+.clogo { border-radius: 50%; object-fit: cover; flex: none; background: #e2e1dd; vertical-align: middle; }
+.clogo--fallback { display: inline-grid; place-items: center; background: var(--ink); color: #fff; font-family: var(--font-sans); font-weight: 600; }
+.clogo--all {
+  display: inline-block; width: 18px; height: 18px; border-radius: 50%;
+  background: var(--ink); background-image: radial-gradient(#fff 1px, transparent 1.3px); background-size: 4.5px 4.5px; background-position: 1px 1px;
+}
+.chain { display: inline-flex; align-items: center; gap: 7px; vertical-align: middle; }
+.kv dd .chain { justify-content: flex-end; }
+
+/* Custom select */
+.select { position: relative; min-width: 0; text-transform: none; letter-spacing: 0; }
+.select__trigger {
+  width: 100%; height: 38px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--line); background: #fff;
+  display: flex; align-items: center; gap: 8px; cursor: pointer; text-align: left;
+  font: 400 14px var(--font-sans); color: var(--ink); transition: border-color 0.2s, box-shadow 0.2s;
+}
+.select__trigger:hover:not(:disabled) { border-color: #bdbbb5; }
+.select.is-open .select__trigger, .select__trigger:focus-visible { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px #e2e1dd; }
+.select__trigger:disabled { background: #f2f1ee; color: var(--muted); cursor: not-allowed; }
+.select__value { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.select__chev { flex: none; color: #888; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+.select.is-open .select__chev { transform: rotate(180deg); color: var(--ink); }
+.select__menu {
+  position: absolute; z-index: 40; top: calc(100% + 6px); left: 0; min-width: 100%; width: max-content; max-width: min(320px, 90vw);
+  background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 6px;
+  box-shadow: 0 18px 40px rgba(17, 17, 17, 0.12), 0 2px 6px rgba(17, 17, 17, 0.06);
+  transform-origin: top center; animation: menu-in 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes menu-in { from { opacity: 0; transform: translateY(-6px) scale(0.97); } }
+.select__search {
+  width: 100%; height: 34px; margin-bottom: 6px; padding: 0 10px; border-radius: 9px; border: 1px solid var(--line);
+  background: var(--panel); font: 400 13px var(--font-sans); color: var(--ink);
+}
+.select__search:focus { outline: none; border-color: var(--ink); }
+.select__menu ul { list-style: none; margin: 0; padding: 0; max-height: 280px; overflow-y: auto; overscroll-behavior: contain; }
+.select__menu li {
+  display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 9px; cursor: pointer;
+  font: 400 14px var(--font-sans); color: var(--ink); animation: opt-in 0.25s ease both;
+}
+@keyframes opt-in { from { opacity: 0; transform: translateX(-4px); } }
+.select__menu li.is-active { background: var(--panel); }
+.select__menu li.is-selected { font-weight: 500; }
+.select__menu li.is-selected svg { margin-left: auto; color: var(--accent); }
+.select__menu li.is-disabled { color: var(--muted); cursor: not-allowed; }
+.select__menu li.is-disabled.is-active { background: transparent; }
+.select__opt { display: grid; gap: 2px; min-width: 0; }
+.select__opt small { font: 400 11px var(--font-mono); color: #a08070; }
+.select__none { color: var(--muted); cursor: default; }
+@media (max-width: 760px) {
+  .select__menu { max-width: calc(100vw - 32px); }
+  .field--pair .select:last-child .select__menu { left: auto; right: 0; }
+}

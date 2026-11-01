@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { ReactNode } from 'react'
 import { fmtPct, fmtUsd, LlamaPool, prettyProject, timeAgo, useNow, usePoolsData } from './data'
 import { ALIGNMENT_LABEL, ReportData, useCompare, useReports } from './store'
-import { DotLoader, Empty, Missing, PageHeader, ProtocolLogo } from './ui'
+import { Chain, DotLoader, Empty, Missing, PageHeader, ProtocolLogo } from './ui'
 
 export default function Compare() {
   const [ids, setIds] = useCompare()
@@ -27,7 +27,7 @@ export default function Compare() {
 
   const rows: { label: string; cell: (p: LlamaPool, id: string) => ReactNode }[] = [
     { label: 'Protocol', cell: (p) => prettyProject(p.project) },
-    { label: 'Network', cell: (p) => p.chain },
+    { label: 'Network', cell: (p) => <Chain chain={p.chain} /> },
     { label: 'Assets', cell: (p) => p.symbol },
     { label: 'APY', cell: (p) => <span className="num">{fmtPct(p.apy)}</span> },
     { label: 'APY from rewards', cell: (p) => fmtPct(p.apyReward) },
