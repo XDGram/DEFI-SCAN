@@ -118,7 +118,10 @@ export default function Research() {
             <span className="status-dot status-dot--idle" aria-hidden="true" />
             Not submitted
           </div>
-          <p className="fine">Real request status from Telegraph will appear here once the integration is connected.</p>
+          <p className="fine">
+            Real request status from Telegraph will appear here once the integration is connected.{' '}
+            <Link to="/app/preview/payment-states">Preview the possible states (simulated)</Link>
+          </p>
         </Step>
 
         <Step n={4} title="Research result" state="idle">

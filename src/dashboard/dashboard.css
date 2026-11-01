@@ -497,3 +497,11 @@ td .badge { margin-left: 6px; }
   .list--cards td.cell-actions::before { display: none; }
   .list--cards .row-actions { width: 100%; justify-content: flex-start; flex-wrap: wrap; }
 }
+
+/* Payment-state preview (simulated) */
+.notice--sim { border-style: dashed; border-color: #e9b39f; background: #fbefe9; color: #6b4a3b; }
+.dash[data-theme='dark'] .notice--sim { background: #241a16; border-color: #6e3b27; color: #d9b3a2; }
+.state-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.state-card { display: grid; gap: 8px; align-content: start; }
+.state-card__head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.state-card p { font-size: 13px; line-height: 1.5; }

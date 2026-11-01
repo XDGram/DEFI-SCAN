@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { fetchMarket } from './marketSource'
 
 export interface Pool {
   pool: string
@@ -14,24 +15,18 @@ export type PoolsState =
   | { status: 'error' }
   | { status: 'ready'; pools: Pool[]; fetchedAt: Date }
 
-const SOURCE_URL = 'https://yields.llama.fi/pools'
-
 export function usePools(count: number): PoolsState {
   const [state, setState] = useState<PoolsState>({ status: 'loading' })
 
   useEffect(() => {
     const controller = new AbortController()
-    fetch(SOURCE_URL, { signal: controller.signal })
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        return res.json() as Promise<{ data: Pool[] }>
-      })
-      .then(({ data }) => {
+    fetchMarket<Pool>('/pools', controller.signal)
+      .then(({ data, fetchedAt }) => {
         const pools = data
           .filter((p) => typeof p.apy === 'number' && p.apy > 0 && p.tvlUsd > 0)
           .sort((a, b) => b.tvlUsd - a.tvlUsd)
           .slice(0, count)
-        setState({ status: 'ready', pools, fetchedAt: new Date() })
+        setState({ status: 'ready', pools, fetchedAt: new Date(fetchedAt) })
       })
       .catch((err) => {
         if (err.name !== 'AbortError') setState({ status: 'error' })

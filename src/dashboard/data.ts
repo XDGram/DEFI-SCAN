@@ -1,4 +1,5 @@
 import { useEffect, useState, useSyncExternalStore } from 'react'
+import { fetchMarket } from '../marketSource'
 
 export interface LlamaPool {
   pool: string
@@ -25,7 +26,6 @@ export type PoolsSnapshot =
   | { status: 'error'; message: string }
   | { status: 'ready'; pools: LlamaPool[]; byId: Map<string, LlamaPool>; fetchedAt: number }
 
-export const POOLS_URL = 'https://yields.llama.fi/pools'
 export const SOURCE = 'DefiLlama'
 
 let snapshot: PoolsSnapshot = { status: 'idle' }
@@ -36,14 +36,10 @@ export function loadPools(force = false) {
   if (!force && (snapshot.status === 'loading' || snapshot.status === 'ready')) return
   snapshot = { status: 'loading' }
   emit()
-  fetch(POOLS_URL)
-    .then((r) => {
-      if (!r.ok) throw new Error(`DefiLlama responded with HTTP ${r.status}`)
-      return r.json() as Promise<{ data: LlamaPool[] }>
-    })
-    .then(({ data }) => {
+  fetchMarket<LlamaPool>('/pools')
+    .then(({ data, fetchedAt }) => {
       const pools = data.filter((p) => p.tvlUsd > 0)
-      snapshot = { status: 'ready', pools, byId: new Map(pools.map((p) => [p.pool, p])), fetchedAt: Date.now() }
+      snapshot = { status: 'ready', pools, byId: new Map(pools.map((p) => [p.pool, p])), fetchedAt }
       emit()
     })
     .catch((e: Error) => {
@@ -126,10 +122,20 @@ export interface ChartPoint {
   tvlUsd: number
 }
 
-export function usePoolChart(poolId: string | undefined) {
-  return useFetchJson<ChartPoint[]>(poolId ? `https://yields.llama.fi/chart/${poolId}` : null, (raw) =>
-    ((raw as { data: ChartPoint[] }).data ?? []).filter((p) => typeof p.apy === 'number'),
-  )
+export function usePoolChart(poolId: string | undefined): Async<ChartPoint[]> {
+  const [state, setState] = useState<Async<ChartPoint[]>>({ status: 'loading' })
+  useEffect(() => {
+    if (!poolId) return
+    const ctrl = new AbortController()
+    setState({ status: 'loading' })
+    fetchMarket<ChartPoint>(`/chart/${encodeURIComponent(poolId)}`, ctrl.signal)
+      .then(({ data, fetchedAt }) => setState({ status: 'ready', data: data.filter((p) => typeof p.apy === 'number'), fetchedAt }))
+      .catch((e: Error) => {
+        if (e.name !== 'AbortError') setState({ status: 'error', message: e.message || 'Network error' })
+      })
+    return () => ctrl.abort()
+  }, [poolId])
+  return state
 }
 
 export function protocolLogo(slug: string) {

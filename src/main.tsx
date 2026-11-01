@@ -11,6 +11,7 @@ import Compare from './dashboard/Compare'
 import Watchlist from './dashboard/Watchlist'
 import History from './dashboard/History'
 import Settings from './dashboard/Settings'
+import { PaymentStatesPreview } from './dashboard/paymentStates'
 import './styles.css'
 import './dashboard/dashboard.css'
 
@@ -29,6 +30,7 @@ createRoot(document.getElementById('root')!).render(
           <Route path="watchlist" element={<Watchlist />} />
           <Route path="history" element={<History />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="preview/payment-states" element={<PaymentStatesPreview />} />
           <Route path="*" element={<Navigate to="discover" replace />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
