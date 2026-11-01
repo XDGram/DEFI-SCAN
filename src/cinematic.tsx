@@ -9,16 +9,14 @@ export function useCinematic() {
     const io = new IntersectionObserver(
       (entries) => {
         for (const e of entries) {
-          if (e.isIntersecting) {
-            e.target.classList.add('is-in')
-            io.unobserve(e.target)
-          }
+          if (e.intersectionRatio >= 0.15) e.target.classList.add('is-in')
+          else if (!e.isIntersecting) e.target.classList.remove('is-in')
         }
       },
-      { threshold: 0.18, rootMargin: '0px 0px -8% 0px' },
+      { threshold: [0, 0.15] },
     )
     const observeAll = () =>
-      document.querySelectorAll('[data-reveal]:not(.is-in)').forEach((el) => io.observe(el))
+      document.querySelectorAll('[data-reveal]').forEach((el) => io.observe(el))
     observeAll()
     const mo = new MutationObserver(observeAll)
     mo.observe(document.body, { childList: true, subtree: true })
