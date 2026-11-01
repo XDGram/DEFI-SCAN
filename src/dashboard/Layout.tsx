@@ -1,6 +1,6 @@
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { useCompare, useWatchlist } from './store'
+import { useCompare, useResolvedTheme, useWatchlist } from './store'
 import { chainName, connectWallet, disconnectWallet, shortAddress, useWallet } from './wallet'
 
 function Mark() {
@@ -64,6 +64,14 @@ export default function Layout() {
   const [compare] = useCompare()
   const [watch] = useWatchlist()
   const { pathname } = useLocation()
+  const theme = useResolvedTheme()
+  useEffect(() => {
+    const root = document.documentElement
+    root.dataset.dashTheme = theme
+    return () => {
+      delete root.dataset.dashTheme
+    }
+  }, [theme])
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [pathname])
@@ -77,7 +85,7 @@ export default function Layout() {
   ]
 
   return (
-    <div className="dash">
+    <div className="dash" data-theme={theme}>
       <header className="topbar">
         <div className="topbar__row">
           <Link to="/" className="topbar__brand">

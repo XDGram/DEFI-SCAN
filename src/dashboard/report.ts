@@ -1,5 +1,5 @@
 import type { LlamaPool, ProtocolInfo } from './data'
-import { Alignment, Preferences, ReportData, snapshotOf } from './store'
+import { Alignment, matchesResearchPrefs, Preferences, ReportData, snapshotOf } from './store'
 
 export const RESEARCH_TOPICS = [
   { id: 'audits', label: 'Audit history and security incidents' },
@@ -24,7 +24,8 @@ export function evaluateAlignment(
   hasIntelligence: boolean,
 ): { alignment: Alignment; reasons: string[] } {
   const reasons: string[] = []
-  const noPrefs = !prefs.risk && !prefs.networks.length && prefs.budgetMax == null && prefs.budgetMin == null
+  const noPrefs =
+    !prefs.risk && !prefs.networks.length && !prefs.assets.length && prefs.budgetMax == null && prefs.budgetMin == null
   if (noPrefs) {
     return { alignment: 'insufficient', reasons: ['No preferences are set. Add them in Settings to evaluate alignment.'] }
   }
@@ -34,6 +35,14 @@ export function evaluateAlignment(
     return { alignment: 'mismatch', reasons }
   }
   if (prefs.networks.length) reasons.push(`${pool.chain} is one of your preferred networks.`)
+
+  if (prefs.assets.length) {
+    if (!matchesResearchPrefs({ chain: pool.chain, symbol: pool.symbol }, { ...prefs, networks: [] })) {
+      reasons.push(`${pool.symbol} does not include any of your preferred assets (${prefs.assets.join(', ')}).`)
+      return { alignment: 'mismatch', reasons }
+    }
+    reasons.push(`${pool.symbol} includes one of your preferred assets.`)
+  }
 
   if (prefs.budgetMax != null && pool.tvlUsd > 0) {
     const share = (prefs.budgetMax / pool.tvlUsd) * 100
