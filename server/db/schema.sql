@@ -95,6 +95,9 @@ CREATE TABLE IF NOT EXISTS siwe_nonces_used (
   expires_at   TIMESTAMPTZ NOT NULL
 );
 
+CREATE INDEX IF NOT EXISTS idx_siwe_nonces_used_expires_at
+ON siwe_nonces_used (expires_at);
+
 -- Supabase exposes the public schema through its Data API (PostgREST/GraphQL) to the anon,
 -- authenticated and service_role roles. These tables are only for the server's direct Postgres
 -- connection, so:
