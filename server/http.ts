@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
-import { log } from './redact.js'
+import { log, safeErrorCode } from './redact.js'
 
 export interface ApiResult {
   status: number
@@ -75,7 +75,8 @@ export function route(methods: string[], handler: Handler, opts: { privateRoute?
       else if (!methods.includes(req.method ?? '')) result = { ...errorResult(405, 'method_not_allowed', {}, privateRoute), headers: { ...(privateRoute ? PRIVATE_NO_STORE : {}), Allow: methods.join(', ') } }
       else result = await handler(req)
     } catch (e) {
-      log.error('unhandled', { path: req.url?.split('?')[0], message: (e as Error).message })
+      // Only a short error code: messages and stacks can carry URLs, credentials or hostnames.
+      log.error('unhandled', { path: req.url?.split('?')[0], code: safeErrorCode(e) })
       result = errorResult(500, 'internal_error', {}, privateRoute)
     }
     if (privateRoute) result = { ...result, headers: { ...(result.headers ?? {}), ...PRIVATE_NO_STORE } }

@@ -56,6 +56,50 @@ describe('paid-route HTTP hygiene (Attack III)', () => {
   })
 })
 
+describe('route wrapper: unhandled errors never leak details into logs', () => {
+  const SECRETS = ['SuperSecretPw', 'pooler.supabase.com', 'postgresql://', 'at secretFrame', '0x' + 'ab'.repeat(32), 'session=abc']
+
+  async function crash(thrown: unknown) {
+    const err = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const r = await call(route(['GET'], async () => { throw thrown }))
+    const logged = err.mock.calls.map((c) => c.map(String).join(' ')).join('\n')
+    err.mockRestore()
+    return { r, logged }
+  }
+
+  it.each([
+    ['an error with a code and a sensitive message and stack', Object.assign(new Error('connect to postgresql://u:SuperSecretPw@x.pooler.supabase.com:6543 failed'), { code: 'ECONNREFUSED', stack: 'Error\n    at secretFrame (/var/task/a.js:1:1)' }), 'ECONNREFUSED'],
+    ['an error without a code', new Error(`bad key 0x${'ab'.repeat(32)} cookie session=abc`), 'unknown'],
+    ['a thrown string', 'postgresql://u:SuperSecretPw@x.pooler.supabase.com', 'unknown'],
+    ['a code field holding a URL', Object.assign(new Error('x'), { code: 'postgresql://u:SuperSecretPw@host' }), 'unknown'],
+    ['undefined', undefined, 'unknown'],
+  ])('logs only the code for %s and keeps the 500 response', async (_n, thrown, code) => {
+    const { r, logged } = await crash(thrown)
+    expect(r.status).toBe(500)
+    expect(r.body).toEqual({ error: 'internal_error' })
+    expect(r.headers['cache-control']).toBe('no-store, private')
+    expect(logged).toContain('"event":"unhandled"')
+    expect(logged).toContain(`"code":"${code}"`)
+    expect(logged).not.toContain('"message"')
+    for (const s of SECRETS) expect(logged).not.toContain(s)
+  })
+
+  it('logs the path without the query string', async () => {
+    const err = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const req = new IncomingMessage(new Socket())
+    req.method = 'GET'
+    req.url = '/api/x?token=SuperSecretPw'
+    req.headers = {}
+    const res = new ServerResponse(req)
+    res.end = (() => res) as never
+    await route(['GET'], async () => { throw new Error('boom') })(req, res)
+    const logged = err.mock.calls.map((c) => String(c[0])).join('\n')
+    err.mockRestore()
+    expect(logged).toContain('"path":"/api/x"')
+    expect(logged).not.toContain('SuperSecretPw')
+  })
+})
+
 describe('redaction (Attack I-B exposure via logs)', () => {
   it('redacts payment headers, cookies and keys', () => {
     const h = redactHeaders({ 'PAYMENT-SIGNATURE': PAYMENT_HEADER, 'X-Payment': PAYMENT_HEADER, cookie: 'dos_session=abc', 'content-type': 'application/json' })

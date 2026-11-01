@@ -87,6 +87,14 @@ CREATE TABLE IF NOT EXISTS system_flags (
 
 INSERT INTO system_flags (name, value) VALUES ('payments_kill_switch', true) ON CONFLICT (name) DO NOTHING;
 
+-- Sign-In with Ethereum nonces that have been used. Only a SHA-256 of the nonce is stored; the primary key
+-- makes each nonce single-use across concurrent requests and server instances.
+CREATE TABLE IF NOT EXISTS siwe_nonces_used (
+  nonce_sha256 CHAR(64) PRIMARY KEY,
+  used_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+  expires_at   TIMESTAMPTZ NOT NULL
+);
+
 -- Supabase exposes the public schema through its Data API (PostgREST/GraphQL) to the anon,
 -- authenticated and service_role roles. These tables are only for the server's direct Postgres
 -- connection, so:
@@ -100,13 +108,14 @@ ALTER TABLE research_results   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payment_events     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE spend_reservations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE system_flags       ENABLE ROW LEVEL SECURITY;
+ALTER TABLE siwe_nonces_used   ENABLE ROW LEVEL SECURITY;
 
 DO $$
 DECLARE r TEXT;
 BEGIN
   FOREACH r IN ARRAY ARRAY['anon', 'authenticated', 'service_role'] LOOP
     IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = r) THEN
-      EXECUTE format('REVOKE ALL ON research_requests, telegraph_payments, research_results, payment_events, spend_reservations, system_flags FROM %I', r);
+      EXECUTE format('REVOKE ALL ON research_requests, telegraph_payments, research_results, payment_events, spend_reservations, system_flags, siwe_nonces_used FROM %I', r);
       EXECUTE format('REVOKE ALL ON SEQUENCE payment_events_id_seq FROM %I', r);
     END IF;
   END LOOP;

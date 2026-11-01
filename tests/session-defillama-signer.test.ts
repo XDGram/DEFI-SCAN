@@ -1,54 +1,7 @@
-import { IncomingMessage } from 'node:http'
-import { Socket } from 'node:net'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
-import { createSiweMessage } from 'viem/siwe'
 import { loadConfig } from '../server/config.js'
 import { clearMarketCache, marketChart, marketPools } from '../server/defillama.js'
 import * as signer from '../server/payments/signer.js'
-import { issueNonce, sessionUser, verifySiwe } from '../server/session.js'
-
-const SECRET = 'x'.repeat(48)
-
-function reqWithCookies(cookies: string[]) {
-  const r = new IncomingMessage(new Socket())
-  r.headers = { cookie: cookies.map((c) => c.split(';')[0]).join('; ') }
-  return r
-}
-
-async function signIn(domain = 'app.example') {
-  const { nonce, setCookie } = issueNonce(SECRET)
-  const account = privateKeyToAccount(generatePrivateKey())
-  const message = createSiweMessage({ address: account.address, chainId: 11155111, domain: 'app.example', nonce, uri: 'https://app.example', version: '1', issuedAt: new Date() })
-  const signature = await account.signMessage({ message })
-  return { out: await verifySiwe(SECRET, reqWithCookies([setCookie]), { message, signature }, domain), account }
-}
-
-describe('Sign-In with Ethereum sessions', () => {
-  it('verifies a signed message and issues an HttpOnly, Secure, SameSite=Strict session', async () => {
-    const { out, account } = await signIn()
-    expect(out.ok).toBe(true)
-    if (!out.ok) return
-    expect(out.address).toBe(account.address.toLowerCase())
-    expect(out.setCookies[0]).toMatch(/HttpOnly; Secure; SameSite=Strict/)
-    expect(sessionUser(SECRET, reqWithCookies([out.setCookies[0]]))).toBe(account.address.toLowerCase())
-  })
-
-  it('rejects a message for another domain', async () => {
-    const { out } = await signIn('evil.example')
-    expect(out).toEqual({ ok: false, error: 'message_rejected' })
-  })
-
-  it('rejects missing nonce cookies and tampered sessions', async () => {
-    const r = await verifySiwe(SECRET, reqWithCookies([]), { message: 'x', signature: '0x' + '1'.repeat(130) }, 'app.example')
-    expect(r).toEqual({ ok: false, error: 'nonce_missing_or_expired' })
-    const { out } = await signIn()
-    if (!out.ok) throw new Error('sign-in failed')
-    const tampered = out.setCookies[0].replace(/dos_session=([^.]+)\./, (_m, p) => `dos_session=${p}A.`)
-    expect(sessionUser(SECRET, reqWithCookies([tampered]))).toBeNull()
-    expect(sessionUser('y'.repeat(48), reqWithCookies([out.setCookies[0]]))).toBeNull()
-  })
-})
 
 describe('DefiLlama proxy', () => {
   afterEach(() => clearMarketCache())

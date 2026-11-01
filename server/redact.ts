@@ -43,6 +43,13 @@ export function redact(value: unknown, depth = 0): unknown {
   return value
 }
 
+// Returns only a short, upper-case error code (for example 28P01, ECONNREFUSED, SELF_SIGNED_CERT_IN_CHAIN).
+// Messages, stacks and anything else are dropped: they can contain hostnames, credentials or connection strings.
+export function safeErrorCode(e: unknown): string {
+  const code = e !== null && typeof e === 'object' ? (e as { code?: unknown }).code : undefined
+  return typeof code === 'string' && /^[A-Z0-9_]{2,40}$/.test(code) ? code : 'unknown'
+}
+
 type Level = 'info' | 'warn' | 'error'
 
 // The only logger server code may use: everything passes through redact().

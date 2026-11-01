@@ -15,6 +15,15 @@ export function requestHost(req: IncomingMessage): string {
   return (Array.isArray(h) ? h[0] : h).split(',')[0].trim()
 }
 
+// HTTPS everywhere except a local development host.
+export function requestOrigin(req: IncomingMessage): string {
+  const host = requestHost(req)
+  const local = /^(localhost|127\.0\.0\.1)(:\d+)?$/.test(host)
+  const proto = req.headers['x-forwarded-proto']
+  const p = (Array.isArray(proto) ? proto[0] : proto ?? '').split(',')[0].trim()
+  return `${local && p === 'http' ? 'http' : 'https'}://${host}`
+}
+
 export async function withUser(req: IncomingMessage, fn: (ctx: { userId: string; cfg: ReturnType<typeof loadConfig> }) => Promise<ApiResult>): Promise<ApiResult> {
   const cfg = loadConfig()
   if (!cfg.sessionSecret) return errorResult(503, 'sessions_not_configured')

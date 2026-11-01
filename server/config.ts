@@ -9,6 +9,7 @@ export interface ServerConfig {
   paymentsEnabled: boolean
   caps: SpendCaps
   sessionSecret: string | null
+  siweChainId: number
   database: { url: string; caCert: string | null; sslDisabled: boolean } | null
   defillama: { yieldsBase: string; usesKey: boolean }
 }
@@ -23,6 +24,13 @@ function uusdc(env: Env, name: string): bigint {
 }
 
 const LEGACY_YIELDS_BASE = 'https://yields.llama.fi'
+const DEFAULT_SIWE_CHAIN_ID = 11155111
+
+function siweChainId(raw: string | undefined): number {
+  if (raw === undefined || raw === '') return DEFAULT_SIWE_CHAIN_ID
+  if (!/^[1-9]\d{0,15}$/.test(raw)) throw new Error('SIWE_CHAIN_ID must be a positive integer chain ID')
+  return Number(raw)
+}
 
 export function loadConfig(env: Env = process.env): ServerConfig {
   const key = env.DEFILLAMA_API_KEY?.trim()
@@ -42,6 +50,7 @@ export function loadConfig(env: Env = process.env): ServerConfig {
       globalTotalUusdc: uusdc(env, 'CAP_GLOBAL_TOTAL_UUSDC'),
     },
     sessionSecret: env.SESSION_SECRET && env.SESSION_SECRET.length >= 32 ? env.SESSION_SECRET : null,
+    siweChainId: siweChainId(env.SIWE_CHAIN_ID),
     database: env.DATABASE_URL
       ? {
           url: env.DATABASE_URL,

@@ -46,7 +46,7 @@ describe('database connection (server-side only)', () => {
     const r = await db.query<{ relname: string; relrowsecurity: boolean }>(
       `SELECT relname, relrowsecurity FROM pg_class WHERE relkind = 'r' AND relnamespace = 'public'::regnamespace ORDER BY relname`,
     )
-    expect(r.rows.map((x) => x.relname)).toEqual(['payment_events', 'research_requests', 'research_results', 'spend_reservations', 'system_flags', 'telegraph_payments'])
+    expect(r.rows.map((x) => x.relname)).toEqual(['payment_events', 'research_requests', 'research_results', 'siwe_nonces_used', 'spend_reservations', 'system_flags', 'telegraph_payments'])
     expect(r.rows.every((x) => x.relrowsecurity)).toBe(true)
   })
 })
