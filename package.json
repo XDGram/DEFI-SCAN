@@ -1,0 +1,33 @@
+{
+  "name": "defi-scan",
+  "version": "1.0.0",
+  "description": "**DeFi Opportunity Scout** is a DeFi research platform being developed for the **Telegraph Protocol Hackathon Season II**.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/XDGram/defi-scan.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/XDGram/defi-scan/issues"
+  },
+  "homepage": "https://github.com/XDGram/defi-scan#readme",
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11"
+  },
+  "type": "module"
+}
