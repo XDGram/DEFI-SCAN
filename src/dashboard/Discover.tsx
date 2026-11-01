@@ -288,21 +288,9 @@ export default function Discover() {
                   </div>
                   <dl className="kv">
                     <div>
-                      <dt>Liquidity</dt>
+                      <dt>Liquidity · Fees · Withdrawal</dt>
                       <dd>
-                        <Missing />
-                      </dd>
-                    </div>
-                    <div>
-                      <dt>Fees</dt>
-                      <dd>
-                        <Missing />
-                      </dd>
-                    </div>
-                    <div>
-                      <dt>Withdrawal</dt>
-                      <dd>
-                        <Missing />
+                        <Missing>Not available</Missing>
                       </dd>
                     </div>
                     <div>

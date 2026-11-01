@@ -383,3 +383,13 @@ export function ConfirmDialog({
     </div>
   )
 }
+
+export function Pct({ value, digits = 2 }: { value: number | null | undefined; digits?: number }) {
+  if (value == null || !isFinite(value))
+    return (
+      <span className="na" title="Not reported by the source — this is not zero">
+        Not reported
+      </span>
+    )
+  return <>{value.toFixed(digits)}%</>
+}

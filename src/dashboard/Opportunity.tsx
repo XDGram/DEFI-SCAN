@@ -12,7 +12,7 @@ import {
   usePoolsData,
   useProtocol,
 } from './data'
-import { Badge, Chain, DotLoader, ErrorBox, Missing, ProtocolLogo } from './ui'
+import { Badge, Chain, DotLoader, ErrorBox, Missing, Pct, ProtocolLogo } from './ui'
 import { CompareToggle, WatchButton } from './actions'
 import { useReports } from './store'
 
@@ -180,19 +180,25 @@ export default function Opportunity() {
               <span className="k">Current APY</span>
             </div>
             <div>
-              <span className="num">{fmtPct(pool.apyBase)}</span>
+              <span className="num">
+                <Pct value={pool.apyBase} />
+              </span>
               <span className="k">Base</span>
             </div>
             <div>
-              <span className="num">{fmtPct(pool.apyReward)}</span>
+              <span className="num">
+                <Pct value={pool.apyReward} />
+              </span>
               <span className="k">Rewards</span>
             </div>
             <div>
-              <span className="num">{fmtPct(pool.apyMean30d)}</span>
+              <span className="num">
+                <Pct value={pool.apyMean30d} />
+              </span>
               <span className="k">30-day average</span>
             </div>
             <div>
-              <span className="num">{pool.apyPct7D == null ? '—' : `${pool.apyPct7D > 0 ? '+' : ''}${pool.apyPct7D.toFixed(2)} pts`}</span>
+              <span className="num">{pool.apyPct7D == null ? <span className="na">Not reported</span> : `${pool.apyPct7D > 0 ? '+' : ''}${pool.apyPct7D.toFixed(2)} pts`}</span>
               <span className="k">7-day change</span>
             </div>
           </div>
