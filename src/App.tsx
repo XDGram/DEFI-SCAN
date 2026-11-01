@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { CSSProperties, useState } from 'react'
 import { formatUsd, usePools } from './usePools'
+import { Letters, Words, useCinematic } from './cinematic'
 
 function Logo({ size = 28 }: { size?: number }) {
   return (
@@ -89,13 +90,13 @@ function HeroDiagram() {
   return (
     <div className="diagram" aria-hidden="true">
       <svg className="diagram__lines" viewBox="0 0 1000 300" preserveAspectRatio="none">
-        <g fill="none" stroke="var(--line)" strokeWidth="1.2" vectorEffect="non-scaling-stroke">
-          <path d="M0 66 H300 C360 66 380 66 420 110" />
-          <path d="M0 234 H330 C380 234 400 234 420 190" />
-          <path d="M1000 66 H700 C640 66 620 66 580 110" />
-          <path d="M1000 234 H670 C620 234 600 234 580 190" />
+        <g className="diagram__paths" fill="none" stroke="var(--line)" strokeWidth="1.2">
+          <path d="M0 66 H300 C360 66 380 66 420 110" pathLength="1" />
+          <path d="M0 234 H330 C380 234 400 234 420 190" pathLength="1" />
+          <path d="M1000 66 H700 C640 66 620 66 580 110" pathLength="1" />
+          <path d="M1000 234 H670 C620 234 600 234 580 190" pathLength="1" />
         </g>
-        <g fill="var(--ink)">
+        <g className="diagram__dots" fill="var(--ink)">
           <circle cx="60" cy="66" r="4" />
           <circle cx="300" cy="66" r="4" />
           <circle cx="330" cy="234" r="4" />
@@ -104,8 +105,12 @@ function HeroDiagram() {
           <circle cx="940" cy="66" r="4" />
         </g>
       </svg>
-      {[...leftNodes, ...rightNodes].map((n) => (
-        <span key={n.label} className="tag diagram__tag" style={{ left: `${n.x}%`, top: `${n.y}%` }}>
+      {[...leftNodes, ...rightNodes].map((n, i) => (
+        <span
+          key={n.label}
+          className="tag diagram__tag"
+          style={{ left: `${n.x}%`, top: `${n.y}%`, '--i': i } as CSSProperties}
+        >
           {n.label}
         </span>
       ))}
@@ -121,16 +126,20 @@ function HeroDiagram() {
 function Hero() {
   return (
     <section className="hero" id="top">
-      <span className="tag tag--badge">Built for Telegraph Protocol Hackathon Season II</span>
-      <h1 className="dot-title">FIND. RESEARCH.</h1>
+      <span className="tag tag--badge hero__fade" style={{ '--d': '0s' } as CSSProperties}>Built for Telegraph Protocol Hackathon Season II</span>
+      <h1 className="dot-title hero__title-top">
+        <Letters text="FIND. RESEARCH." delay={0.2} />
+      </h1>
       <HeroDiagram />
-      <p className="dot-title dot-title--second" aria-hidden="true">DECIDE.</p>
-      <h2 className="hero__headline">Find Yield Opportunities. Research Before You Decide.</h2>
-      <p className="hero__sub">
+      <p className="dot-title dot-title--second hero__title-bottom" aria-hidden="true">
+        <Letters text="DECIDE." delay={1.4} />
+      </p>
+      <h2 className="hero__headline hero__fade" style={{ '--d': '1.9s' } as CSSProperties}>Find Yield Opportunities. Research Before You Decide.</h2>
+      <p className="hero__sub hero__fade" style={{ '--d': '2.05s' } as CSSProperties}>
         Discover and compare DeFi opportunities, then use Telegraph-powered intelligence to
         investigate details beyond APY.
       </p>
-      <div className="hero__actions">
+      <div className="hero__actions hero__fade" style={{ '--d': '2.2s' } as CSSProperties}>
         <PillButton href="#opportunities" accent>
           Explore Opportunities
         </PillButton>
@@ -150,7 +159,7 @@ function OpportunityPreview() {
       : null
 
   return (
-    <section className="panel" id="opportunities" aria-labelledby="opps-heading">
+    <section className="panel" data-reveal id="opportunities" aria-labelledby="opps-heading">
       <h2 id="opps-heading" className="sr-only">
         Opportunity preview
       </h2>
@@ -173,8 +182,8 @@ function OpportunityPreview() {
       )}
 
       {state.status === 'ready' &&
-        state.pools.map((p) => (
-          <article className="panel__col opp" key={p.pool}>
+        state.pools.map((p, i) => (
+          <article className="panel__col opp" key={p.pool} style={{ '--i': i } as CSSProperties}>
             <div className="opp__head">
               <span className="tag">{p.chain}</span>
               <span className="tag tag--live">Live</span>
@@ -204,7 +213,7 @@ function OpportunityPreview() {
           </article>
         ))}
 
-      <div className="panel__col panel__cta">
+      <div className="panel__col panel__cta" style={{ '--i': 3 } as CSSProperties}>
         <p>
           A preview of the largest pools by TVL. APY is variable and can change at any time — it
           is not a measure of safety or suitability.
@@ -234,13 +243,16 @@ const steps = [
 function HowItWorks() {
   return (
     <section className="section" id="how-it-works">
-      <h2 className="split-heading">
-        How it works.
-        <span className="muted"> From discovery to an informed decision,</span> in three steps.
+      <h2 className="split-heading" data-reveal>
+        <Words text="How it works." />{' '}
+        <span className="muted">
+          <Words text="From discovery to an informed decision," start={3} />
+        </span>{' '}
+        <Words text="in three steps." start={9} />
       </h2>
-      <div className="steps">
-        {steps.map((s) => (
-          <div className="step" key={s.n}>
+      <div className="steps" data-reveal>
+        {steps.map((s, i) => (
+          <div className="step" key={s.n} style={{ '--i': i } as CSSProperties}>
             <span className="dot-num dot-num--sm">{s.n}</span>
             <h3>{s.title}</h3>
             <p>{s.text}</p>
@@ -266,9 +278,16 @@ function Halftone() {
     }
   }
   return (
-    <svg className="halftone" viewBox={`0 0 ${cols} ${rows}`} aria-hidden="true">
+    <svg className="halftone" data-reveal viewBox={`0 0 ${cols} ${rows}`} aria-hidden="true">
       {dots.map((d) => (
-        <circle key={`${d.x}-${d.y}`} cx={d.x + 0.5} cy={d.y + 0.5} r={d.r} fill="var(--ink-soft)" />
+        <circle
+          key={`${d.x}-${d.y}`}
+          cx={d.x + 0.5}
+          cy={d.y + 0.5}
+          r={d.r}
+          fill="var(--ink-soft)"
+          style={{ '--x': d.x / cols, '--y': d.y / rows } as CSSProperties}
+        />
       ))}
     </svg>
   )
@@ -293,13 +312,16 @@ function WhyScout() {
   return (
     <section className="section why">
       <div className="why__intro">
-        <h2 className="split-heading split-heading--lg">
-          Why DeFi Opportunity Scout?
-          <span className="muted"> Research the risks </span>behind the yield.
+        <h2 className="split-heading split-heading--lg" data-reveal>
+          <Words text="Why DeFi Opportunity Scout?" />{' '}
+          <span className="muted">
+            <Words text="Research the risks" start={4} />
+          </span>{' '}
+          <Words text="behind the yield." start={7} />
         </h2>
-        <div className="why__list">
-          {reasons.map((r) => (
-            <div key={r.title} className="why__item">
+        <div className="why__list" data-reveal>
+          {reasons.map((r, i) => (
+            <div key={r.title} className="why__item" style={{ '--i': i } as CSSProperties}>
               <h3>{r.title}</h3>
               <p>{r.text}</p>
             </div>
@@ -313,7 +335,7 @@ function WhyScout() {
 
 function Footer() {
   return (
-    <footer className="footer">
+    <footer className="footer" data-reveal>
       <div className="footer__top">
         <a className="nav__brand" href="#top">
           <Logo size={22} />
@@ -348,8 +370,10 @@ function Footer() {
 }
 
 export default function App() {
+  useCinematic()
   return (
     <>
+      <div className="scroll-bar" aria-hidden="true" />
       <Navbar />
       <main>
         <Hero />
