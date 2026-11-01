@@ -12,7 +12,7 @@ import {
   usePoolsData,
   useProtocol,
 } from './data'
-import { Badge, DotLoader, ErrorBox, Missing, ProtocolLogo } from './ui'
+import { Badge, Chain, DotLoader, ErrorBox, Missing, ProtocolLogo } from './ui'
 import { CompareToggle, WatchButton } from './actions'
 import { useReports } from './store'
 
@@ -147,7 +147,9 @@ export default function Opportunity() {
           <dl className="kv kv--wide">
             <div>
               <dt>Network</dt>
-              <dd>{pool.chain}</dd>
+              <dd>
+                <Chain chain={pool.chain} />
+              </dd>
             </div>
             <div>
               <dt>Asset(s)</dt>
