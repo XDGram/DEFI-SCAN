@@ -49,9 +49,14 @@ let state: WalletState = {
   error: null,
 }
 const listeners = new Set<() => void>()
+let errorTimer: ReturnType<typeof setTimeout> | undefined
 function set(patch: Partial<WalletState>) {
   state = { ...state, ...patch }
   listeners.forEach((l) => l())
+  if (patch.error) {
+    clearTimeout(errorTimer)
+    errorTimer = setTimeout(() => set({ error: null }), 6000)
+  }
 }
 
 async function readChain() {

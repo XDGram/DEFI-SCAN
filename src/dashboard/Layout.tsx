@@ -74,6 +74,7 @@ export default function Layout() {
   }, [theme])
   useEffect(() => {
     window.scrollTo(0, 0)
+    document.querySelector('.tab.is-active')?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
   }, [pathname])
 
   const tabs = [

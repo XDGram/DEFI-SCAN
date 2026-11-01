@@ -376,7 +376,7 @@ td .badge { margin-left: 6px; }
 .dash[data-theme='dark'] .card--dark p { color: var(--on-ink); opacity: 0.75; }
 .dash[data-theme='dark'] .switch__thumb { background: #fff; }
 .dash[data-theme='dark'] .switch input:checked + .switch__track .switch__thumb { background: #121212; }
-.dash[data-theme='dark'] .plogo, .dash[data-theme='dark'] .clogo { background: #333; }
+.dash[data-theme='dark'] .plogo:not(.plogo--fallback), .dash[data-theme='dark'] .clogo:not(.clogo--fallback):not(.clogo--all) { background: #333; }
 .dash[data-theme='dark'] .verdict--live { color: #8fd497; }
 .dash[data-theme='dark'] .verdict--warn { color: #f0a98d; }
 .dash[data-theme='dark'] .verdict--info { color: #e8cf86; }
@@ -471,4 +471,29 @@ td .badge { margin-left: 6px; }
   .set-select, .affix { width: 100%; }
   .pair { width: 100%; }
   .pair .affix { flex: 1; width: auto; min-width: 0; }
+}
+
+/* Consistency polish */
+.na { font-size: 0.85em; font-weight: 400; color: var(--muted); font-style: italic; }
+.dot-num .na { font-family: var(--font-sans); font-size: 14px; }
+.cmp td .badge { margin-left: 6px; vertical-align: middle; }
+.wallet__error { animation: pop-in 0.25s ease; }
+
+@media (max-width: 640px) {
+  .table-wrap:has(.list--cards) { background: transparent; border: 0; overflow: visible; }
+  .list--cards { min-width: 0; }
+  .list--cards thead { display: none; }
+  .list--cards tbody { display: grid; gap: 10px; }
+  .list--cards tbody tr {
+    display: grid; gap: 2px; padding: 12px 14px; background: var(--surface);
+    border: 1px solid var(--border-soft); border-radius: var(--radius);
+  }
+  .list--cards tbody tr:hover { background: var(--surface); }
+  .list--cards td { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 7px 0; border-bottom: 1px dashed var(--border-soft) !important; text-align: right; }
+  .list--cards td::before { content: attr(data-label); font: 400 11px var(--font-mono); color: var(--muted); text-align: left; flex: none; }
+  .list--cards td:first-child { justify-content: flex-start; text-align: left; padding-top: 2px; }
+  .list--cards td:first-child::before { display: none; }
+  .list--cards td.cell-actions { border-bottom: 0 !important; padding-top: 10px; }
+  .list--cards td.cell-actions::before { display: none; }
+  .list--cards .row-actions { width: 100%; justify-content: flex-start; flex-wrap: wrap; }
 }

@@ -1,8 +1,8 @@
 import { Link, useParams } from 'react-router-dom'
-import { fmtPct, fmtUsd, prettyProject, SOURCE } from './data'
+import { fmtUsd, prettyProject, SOURCE } from './data'
 import { ALIGNMENT_LABEL, RISK_LABEL, STATUS_LABEL, useReports } from './store'
 import { RESEARCH_TOPICS } from './report'
-import { Badge, Chain, Empty, Missing, ProtocolLogo } from './ui'
+import { Badge, Chain, Empty, Missing, Pct, ProtocolLogo } from './ui'
 
 const fmtDate = (ts: number) => new Date(ts).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
 
@@ -71,7 +71,7 @@ export default function Report() {
             <div><dt>Protocol</dt><dd>{r.protocol.name ?? prettyProject(o.project)}{r.protocol.category && ` · ${r.protocol.category}`}</dd></div>
             <div><dt>Network</dt><dd><Chain chain={o.chain} /></dd></div>
             <div><dt>Assets</dt><dd>{o.symbol}{o.poolMeta && ` · ${o.poolMeta}`}</dd></div>
-            <div><dt>APY</dt><dd>{fmtPct(o.apy)}</dd></div>
+            <div><dt>APY</dt><dd><Pct value={o.apy} /></dd></div>
             <div><dt>TVL</dt><dd>{fmtUsd(o.tvlUsd)}</dd></div>
           </dl>
         </section>
@@ -79,10 +79,10 @@ export default function Report() {
         <section className="card">
           <h2>B. Market analysis</h2>
           <dl className="kv kv--wide">
-            <div><dt>Base APY</dt><dd>{fmtPct(o.apyBase)}</dd></div>
-            <div><dt>Reward APY</dt><dd>{fmtPct(o.apyReward)}</dd></div>
-            <div><dt>30-day average</dt><dd>{fmtPct(o.apyMean30d)}</dd></div>
-            <div><dt>7-day change</dt><dd>{o.apyPct7D == null ? '—' : `${o.apyPct7D.toFixed(2)} pts`}</dd></div>
+            <div><dt>Base APY</dt><dd><Pct value={o.apyBase} /></dd></div>
+            <div><dt>Reward APY</dt><dd><Pct value={o.apyReward} /></dd></div>
+            <div><dt>30-day average</dt><dd><Pct value={o.apyMean30d} /></dd></div>
+            <div><dt>7-day change</dt><dd>{o.apyPct7D == null ? <span className="na">Not reported</span> : `${o.apyPct7D.toFixed(2)} pts`}</dd></div>
             <div><dt>Liquidity</dt><dd><Missing /></dd></div>
             <div><dt>Fees</dt><dd><Missing /></dd></div>
             <div><dt>Withdrawal</dt><dd><Missing /></dd></div>

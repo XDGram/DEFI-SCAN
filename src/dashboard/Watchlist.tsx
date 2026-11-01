@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
-import { fmtPct, fmtUsd, prettyProject, timeAgo, useNow, usePoolsData } from './data'
+import { fmtUsd, prettyProject, timeAgo, useNow, usePoolsData } from './data'
 import { STATUS_LABEL, useReports, useWatchlist } from './store'
-import { Badge, Chain, Empty, PageHeader, ProtocolLogo } from './ui'
+import { Badge, Chain, Empty, PageHeader, Pct, ProtocolLogo } from './ui'
 
 export default function Watchlist() {
   const [list, setList] = useWatchlist()
@@ -18,7 +18,7 @@ export default function Watchlist() {
         </Empty>
       ) : (
         <div className="table-wrap">
-          <table className="list">
+          <table className="list list--cards">
             <thead>
               <tr>
                 <th>Opportunity</th>
@@ -39,7 +39,7 @@ export default function Watchlist() {
                 const r = reports.filter((x) => x.opportunity.pool === s.pool).sort((a, b) => b.createdAt - a.createdAt)[0]
                 return (
                   <tr key={s.pool}>
-                    <td>
+                    <td data-label="Opportunity">
                       <div className="cell-id">
                         <ProtocolLogo slug={s.project} size={28} />
                         <div>
@@ -48,17 +48,19 @@ export default function Watchlist() {
                         </div>
                       </div>
                     </td>
-                    <td>
+                    <td data-label="Network">
                       <Chain chain={s.chain} />
                     </td>
-                    <td className="num">{fmtPct(apy)}</td>
-                    <td className="num">{fmtUsd(tvl)}</td>
-                    <td>
+                    <td data-label="APY" className="num">
+                      <Pct value={apy} />
+                    </td>
+                    <td data-label="TVL" className="num">{fmtUsd(tvl)}</td>
+                    <td data-label="Last fetched">
                       {timeAgo(fetched, now)}
                       {!live && <Badge tone="warn">Saved snapshot</Badge>}
                     </td>
-                    <td>{r ? <Link to={`/app/report/${r.id}`}>{STATUS_LABEL[r.status]}</Link> : <span className="muted">Not researched</span>}</td>
-                    <td>
+                    <td data-label="Research">{r ? <Link to={`/app/report/${r.id}`}>{STATUS_LABEL[r.status]}</Link> : <span className="muted">Not researched</span>}</td>
+                    <td className="cell-actions">
                       <div className="row-actions">
                         <Link className="btn btn--light btn--sm" to={`/app/opportunity/${s.pool}`}>
                           Details
