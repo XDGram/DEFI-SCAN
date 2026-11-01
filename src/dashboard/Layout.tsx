@@ -1,6 +1,7 @@
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { useCompare, useResolvedTheme, useWatchlist } from './store'
+import { signInWithWallet, signOutSession, useAuth } from './auth'
 import { chainName, connectWallet, disconnectWallet, shortAddress, useWallet } from './wallet'
 
 function Mark() {
@@ -18,14 +19,25 @@ function Mark() {
 
 function WalletControl() {
   const w = useWallet()
+  const auth = useAuth()
   const [open, setOpen] = useState(false)
+  const signedIn = auth.status === 'signed_in' && !!auth.address
+  const matchesWallet = signedIn && !!w.address && auth.address === w.address.toLowerCase()
+  const busy = auth.status === 'signing' || auth.status === 'checking' || auth.status === 'signing_out'
+  const error = auth.error ?? w.error
+
   if (!w.address) {
     return (
       <div className="wallet">
+        {signedIn && (
+          <span className="badge badge--live wallet__session" title="Server session active">
+            Signed in · {shortAddress(auth.address!)}
+          </span>
+        )}
         <button className="btn btn--dark" type="button" onClick={connectWallet} disabled={w.connecting}>
           {w.connecting ? 'Waiting for wallet…' : 'Connect Wallet'}
         </button>
-        {w.error && <p className="wallet__error">{w.error}</p>}
+        {error && <p className="wallet__error" role="alert">{error}</p>}
       </div>
     )
   }
@@ -37,13 +49,42 @@ function WalletControl() {
           {chainName(w.chainId)}
         </span>
       )}
+      {matchesWallet ? (
+        <span className="badge badge--live wallet__session" title="Server session active">
+          Signed in
+        </span>
+      ) : (
+        <button className="btn btn--dark" type="button" onClick={() => signInWithWallet(w.address)} disabled={busy}>
+          {auth.status === 'signing' ? 'Check your wallet…' : auth.status === 'checking' ? 'Checking…' : 'Sign in'}
+        </button>
+      )}
       <button className="btn btn--light wallet__addr" type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
         {shortAddress(w.address)}
       </button>
       {open && (
         <div className="wallet__menu">
           <p className="mono">{w.address}</p>
-          <p className="wallet__note">Read-only connection. This app never requests transactions or moves funds.</p>
+          <p className="wallet__note">
+            {matchesWallet
+              ? 'Signed in with this wallet.'
+              : signedIn
+                ? `Signed in as a different wallet (${shortAddress(auth.address!)}). Sign in again to switch.`
+                : 'Connected, not signed in. Signing in uses a free message signature, not a transaction.'}
+          </p>
+          <p className="wallet__note">This app never requests transactions or moves funds.</p>
+          {signedIn && (
+            <button
+              className="btn btn--light"
+              type="button"
+              disabled={busy}
+              onClick={() => {
+                void signOutSession()
+                setOpen(false)
+              }}
+            >
+              {auth.status === 'signing_out' ? 'Signing out…' : 'Sign out'}
+            </button>
+          )}
           <button
             className="btn btn--light"
             type="button"
@@ -56,6 +97,7 @@ function WalletControl() {
           </button>
         </div>
       )}
+      {error && <p className="wallet__error" role="alert">{error}</p>}
     </div>
   )
 }

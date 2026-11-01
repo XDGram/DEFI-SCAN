@@ -505,3 +505,9 @@ td .badge { margin-left: 6px; }
 .state-card { display: grid; gap: 8px; align-content: start; }
 .state-card__head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
 .state-card p { font-size: 13px; line-height: 1.5; }
+
+/* Sign-in session badge */
+.wallet__session { white-space: nowrap; }
+@media (max-width: 560px) {
+  .wallet__session { padding: 3px 7px; font-size: 10px; }
+}

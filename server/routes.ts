@@ -24,6 +24,12 @@ export function requestOrigin(req: IncomingMessage): string {
   return `${local && p === 'http' ? 'http' : 'https'}://${host}`
 }
 
+// The values a SIWE message must contain for this request. Used both to tell the client what to sign
+// (/api/auth/nonce) and to verify it (/api/auth/verify), so the two can never disagree.
+export function siweExpectation(req: IncomingMessage, cfg: ReturnType<typeof loadConfig>) {
+  return { domain: requestHost(req), origin: requestOrigin(req), chainId: cfg.siweChainId }
+}
+
 export async function withUser(req: IncomingMessage, fn: (ctx: { userId: string; cfg: ReturnType<typeof loadConfig> }) => Promise<ApiResult>): Promise<ApiResult> {
   const cfg = loadConfig()
   if (!cfg.sessionSecret) return errorResult(503, 'sessions_not_configured')

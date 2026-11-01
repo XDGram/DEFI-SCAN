@@ -12,7 +12,8 @@ import {
   useThemePref,
   useWatchlist,
 } from './store'
-import { chainName, connectWallet, disconnectWallet, useWallet } from './wallet'
+import { signInWithWallet, signOutSession, useAuth } from './auth'
+import { chainName, connectWallet, disconnectWallet, shortAddress, useWallet } from './wallet'
 import { Chain, Check, ConfirmDialog, PageHeader, Segmented, Select, Switch } from './ui'
 
 const FALLBACK_NETWORKS = ['Ethereum', 'Arbitrum', 'Base', 'Optimism', 'Polygon', 'BSC', 'Avalanche', 'Solana']
@@ -143,6 +144,7 @@ type Pending = null | 'watchlist' | 'history' | 'prefs'
 
 export default function Settings() {
   const w = useWallet()
+  const auth = useAuth()
   const [prefs, setPrefsRaw] = usePrefs()
   const [themePref, setThemePref] = useThemePref()
   const theme = useResolvedTheme()
@@ -263,6 +265,35 @@ export default function Settings() {
             </button>
           )}
           {w.error && <p className="set-error">{w.error}</p>}
+        </Row>
+        <Row label="Session" hint="Signing in uses a free message signature, not a transaction.">
+          <span className={`conn conn--${auth.status === 'signed_in' ? 'connected' : 'disconnected'}`}>
+            <i aria-hidden="true" />
+            {auth.status === 'signed_in' && auth.address
+              ? `Signed in as ${shortAddress(auth.address)}`
+              : auth.status === 'checking'
+                ? 'Checking…'
+                : auth.status === 'unavailable'
+                  ? 'Sign-in unavailable'
+                  : 'Not signed in'}
+          </span>
+          {auth.status === 'signed_in' ? (
+            <button className="btn btn--light btn--sm" type="button" onClick={() => void signOutSession()}>
+              Sign out
+            </button>
+          ) : (
+            w.address && (
+              <button
+                className="btn btn--dark btn--sm"
+                type="button"
+                onClick={() => void signInWithWallet(w.address)}
+                disabled={auth.status === 'signing' || auth.status === 'checking' || auth.status === 'signing_out'}
+              >
+                {auth.status === 'signing' ? 'Check your wallet…' : 'Sign in'}
+              </button>
+            )
+          )}
+          {auth.error && <p className="set-error" role="alert">{auth.error}</p>}
         </Row>
       </Section>
 
