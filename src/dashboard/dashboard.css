@@ -1,9 +1,10 @@
 /* Dashboard — shares tokens with the landing page */
-.dash {
+.dash, .wallet-scope {
   --surface: #fff; --text-2: #6b6b6b; --border-soft: #e3e1dc; --hover: #faf9f7; --ring: #e2e1dd;
   --track: #e4e3df; --disabled: #f2f1ee; --line-strong: #bdbbb5; --on-ink: #fff;
-  background: var(--bg); color: var(--ink);
 }
+.dash { background: var(--bg); color: var(--ink); }
+.nav__wallet { justify-self: end; }
 .dash[data-theme='dark'] {
   --bg: #121212; --panel: #1b1b1b; --surface: #1f1f1f; --ink: #f1f0ec; --ink-soft: #d5d4cf; --muted: #8b8a86;
   --text-2: #a9a8a3; --line: #343432; --border-soft: #2b2b2a; --hover: #262625; --ring: #3a3a38;
@@ -510,4 +511,8 @@ td .badge { margin-left: 6px; }
 .wallet__session { white-space: nowrap; }
 @media (max-width: 560px) {
   .wallet__session { padding: 3px 7px; font-size: 10px; }
+}
+/* Landing navbar on narrow screens: make room for the wallet control once a wallet is connected. */
+@media (max-width: 560px) {
+  .nav:has(.wallet__addr) .nav__brand span { display: none; }
 }

@@ -1,4 +1,5 @@
 import { CSSProperties, useEffect, useState } from 'react'
+import WalletControl from './dashboard/WalletControl'
 import { formatUsd, usePools } from './usePools'
 import { Letters, Words, useCinematic } from './cinematic'
 
@@ -50,7 +51,6 @@ function PillButton({
 }
 
 function Navbar() {
-  const [walletNote, setWalletNote] = useState(false)
   return (
     <header className="nav-wrap">
       <nav className="nav">
@@ -62,14 +62,9 @@ function Navbar() {
           <a href="#how-it-works">How It Works</a>
           <a href="/app/discover">Explore</a>
         </div>
-        <button
-          className="nav__cta"
-          type="button"
-          onClick={() => setWalletNote(true)}
-          title="Wallet connection will be available in the dashboard"
-        >
-          {walletNote ? 'Coming soon' : 'Connect Wallet'}
-        </button>
+        <div className="nav__wallet wallet-scope">
+          <WalletControl />
+        </div>
       </nav>
     </header>
   )

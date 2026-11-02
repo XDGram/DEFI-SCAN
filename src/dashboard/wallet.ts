@@ -21,6 +21,8 @@ export interface WalletState {
 }
 
 const FLAG = 'dos:wallet-connected'
+// Sign-in messages must name this chain (the server's SIWE_CHAIN_ID default).
+export const SUPPORTED_CHAIN_ID = 11155111
 const CHAINS: Record<number, string> = {
   1: 'Ethereum',
   10: 'Optimism',
@@ -68,20 +70,66 @@ async function readChain() {
   }
 }
 
+const NO_WALLET = 'No browser wallet found. Install a wallet extension such as MetaMask, or open this site in your wallet app’s browser.'
+
+function providerErrorText(e: unknown, fallback: string): string {
+  const code = (e as { code?: unknown } | null)?.code
+  if (code === 4001) return 'The request was rejected in your wallet.'
+  if (code === -32002) return 'A request is already open in your wallet. Open your wallet to continue.'
+  return fallback
+}
+
+export function getWalletState(): WalletState {
+  return state
+}
+
+export function isSupportedChain(chainId: number | null): boolean {
+  return chainId === SUPPORTED_CHAIN_ID
+}
+
 export async function connectWallet() {
-  if (!window.ethereum) {
-    set({ error: 'No browser wallet found. Install a wallet extension such as MetaMask, or open this site in your wallet app’s browser.' })
+  const eth = typeof window !== 'undefined' ? window.ethereum : undefined
+  if (!eth) {
+    set({ available: false, error: NO_WALLET })
     return
   }
-  set({ connecting: true, error: null })
+  if (state.connecting) return
+  set({ available: true, connecting: true, error: null })
   try {
-    const accounts = (await window.ethereum.request({ method: 'eth_requestAccounts' })) as string[]
-    set({ address: accounts[0] ?? null, connecting: false })
-    localStorage.setItem(FLAG, '1')
+    const accounts = (await eth.request({ method: 'eth_requestAccounts' })) as string[]
+    if (!Array.isArray(accounts) || !accounts.length) {
+      set({ connecting: false, error: 'No account was shared by your wallet.' })
+      return
+    }
+    set({ address: accounts[0], connecting: false })
+    try {
+      localStorage.setItem(FLAG, '1')
+    } catch {
+      /* storage unavailable: only affects reconnecting after reload */
+    }
     await readChain()
   } catch (e) {
-    const msg = (e as { message?: string }).message ?? 'Connection was rejected.'
-    set({ connecting: false, error: msg })
+    set({ connecting: false, error: providerErrorText(e, 'Could not connect to your wallet. Please try again.') })
+  }
+}
+
+export async function switchToSupportedChain() {
+  const eth = typeof window !== 'undefined' ? window.ethereum : undefined
+  if (!eth) {
+    set({ error: NO_WALLET })
+    return
+  }
+  try {
+    await eth.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: `0x${SUPPORTED_CHAIN_ID.toString(16)}` }] })
+    await readChain()
+  } catch (e) {
+    const code = (e as { code?: unknown } | null)?.code
+    set({
+      error:
+        code === 4902
+          ? 'Sepolia is not set up in your wallet. Add the Sepolia test network in your wallet, then try again.'
+          : providerErrorText(e, 'Could not switch network. Switch your wallet to Sepolia and try again.'),
+    })
   }
 }
 

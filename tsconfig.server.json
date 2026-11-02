@@ -9,5 +9,6 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["server", "api", "tests"]
+  "include": ["server", "api", "tests"],
+  "exclude": ["tests/browser"]
 }
