@@ -1,5 +1,6 @@
 import { useEffect, useSyncExternalStore } from 'react'
 import { AUTH_ERROR_TEXT, AuthError, checkSession, signIn, signOut, type AuthErrorCode } from '../authFlow'
+import { getActiveProvider } from './wallet'
 
 export type AuthStatus = 'checking' | 'signed_out' | 'signing' | 'signed_in' | 'signing_out' | 'unavailable'
 
@@ -22,7 +23,7 @@ function set(patch: Partial<AuthState>) {
   }
 }
 
-const deps = () => ({ fetch: window.fetch.bind(window), ethereum: window.ethereum, location: window.location })
+const deps = () => ({ fetch: window.fetch.bind(window), ethereum: getActiveProvider(), location: window.location })
 
 // Signed-in state comes only from the server (/api/auth/me), never from the wallet or browser storage.
 export async function refreshSession() {

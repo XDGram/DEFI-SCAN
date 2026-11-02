@@ -13,7 +13,8 @@ import {
   useWatchlist,
 } from './store'
 import { signInWithWallet, signOutSession, useAuth } from './auth'
-import { chainName, connectWallet, disconnectWallet, shortAddress, useWallet } from './wallet'
+import WalletPicker from './WalletPicker'
+import { chainName, disconnectWallet, shortAddress, useWallet } from './wallet'
 import { Chain, Check, ConfirmDialog, PageHeader, Segmented, Select, Switch } from './ui'
 
 const FALLBACK_NETWORKS = ['Ethereum', 'Arbitrum', 'Base', 'Optimism', 'Polygon', 'BSC', 'Avalanche', 'Solana']
@@ -260,9 +261,7 @@ export default function Settings() {
               Disconnect wallet
             </button>
           ) : (
-            <button className="btn btn--dark btn--sm" type="button" onClick={connectWallet} disabled={w.connecting}>
-              {w.connecting ? 'Waiting for wallet…' : 'Connect Wallet'}
-            </button>
+            <WalletPicker className="btn btn--dark btn--sm" align="left" />
           )}
           {w.error && <p className="set-error">{w.error}</p>}
         </Row>

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { signInWithWallet, signOutSession, useAuth } from './auth'
-import { chainName, connectWallet, disconnectWallet, isSupportedChain, shortAddress, switchToSupportedChain, useWallet } from './wallet'
+import WalletPicker from './WalletPicker'
+import { chainName, disconnectWallet, isSupportedChain, shortAddress, switchToSupportedChain, useWallet } from './wallet'
 
 // Injected-wallet connection and SIWE sign-in control, shared by the dashboard top bar and the landing navbar.
 // "Signed in" is shown only when the server confirms the session (useAuth -> /api/auth/me).
@@ -12,6 +13,7 @@ export default function WalletControl() {
   const matchesWallet = signedIn && !!w.address && auth.address === w.address.toLowerCase()
   const busy = auth.status === 'signing' || auth.status === 'checking' || auth.status === 'signing_out'
   const error = auth.error ?? w.error
+  const walletName = w.wallets.find((x) => x.id === w.walletId)?.name
   const wrongNetwork = w.chainId != null && !isSupportedChain(w.chainId)
 
   if (!w.address) {
@@ -22,9 +24,7 @@ export default function WalletControl() {
             Signed in · {shortAddress(auth.address!)}
           </span>
         )}
-        <button className="btn btn--dark" type="button" onClick={connectWallet} disabled={w.connecting}>
-          {w.connecting ? 'Waiting for wallet…' : 'Connect Wallet'}
-        </button>
+        <WalletPicker />
         {error && <p className="wallet__error" role="alert">{error}</p>}
       </div>
     )
@@ -55,6 +55,7 @@ export default function WalletControl() {
       </button>
       {open && (
         <div className="wallet__menu">
+          {walletName && <p className="wallet__note">Connected with {walletName}</p>}
           <p className="mono">{w.address}</p>
           <p className="wallet__note">
             {matchesWallet
